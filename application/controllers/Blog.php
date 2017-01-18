@@ -12,7 +12,7 @@ class Blog extends My_Controller
   function __construct()
   {
     parent::__construct();
-
+    $this->load->model('article_model', 'article');
   }
 
   function index() {
@@ -20,13 +20,11 @@ class Blog extends My_Controller
     $this->data->template = 'blog';
     $this->data->title = 'Blog 1';
 
-    $sql_args = array('active' => 1);
-    $this->db->order_by('id', 'DESC');
-    $query = $this->db->get_where('articles', $sql_args);
+    $result = $this->article->get();
 
     $this->data->articles = [];
 
-    foreach( $query->result() as $article ) {
+    foreach( $result as $article ) {
       array_push($this->data->articles, [
         'id' => $article->id,
         'title' => $article->title,
@@ -40,34 +38,80 @@ class Blog extends My_Controller
 
   }
 
-  function view($id) {
+  function view($id)
+  {
 
-    if (empty($id)) {
-      header('Location: /blog/');
+    if ( empty( $id ) )
+    {
+      header( 'Location: /blog/' );
+
       return;
     }
 
     $this->data->template = 'blog_view';
 
-    $sql_args = array('id' => $id, 'active' => 1);
-    $query = $this->db->get_where('articles', $sql_args);
-    $this->data->article = [];
-    if ( $this->db->affected_rows() == 0 ) {
+
+    $article = $this->article->get_by_id( $id );
+
+    if ( !$article )
+    {
       header('Location: /blog/');
-      return;
     }
 
-    foreach( $query->result() as $article ) {
-      $this->data->title = $article->title;
-      $this->data->article = [
+    $this->data->title = $article->title;
+    $this->data->article = [
+        'id' => $article->id,
         'title' => $article->title,
         'author' => $article->author,
         'date' => $article->date,
         'text' => $article->text
       ];
-    }
+
     $this->load->view('components/layout', [ 'data' => $this->data ]);
 
+  }
+
+  function add ()
+  {
+    $this->data->article = $this->article->get_new();
+    $this->data->template = 'blog_form';
+    $this->data->title = 'Add';
+    $this->load->view('components/layout', [ 'data' => $this->data ]);
+  }
+
+  function edit ( $id = null )
+  {
+    if ( empty($id) )
+    {
+      header( 'Location: /blog/' );
+    }
+
+    $this->data->article = $this->article->get_by_id($id);
+    $this->data->template = 'blog_form';
+    $this->data->title = 'Edit';
+    $this->load->view('components/layout', [ 'data' => $this->data ]);
+  }
+
+  function save ()
+  {
+    if ( $this->input->post() ) {
+      $rules = $this->article->rules;
+      $this->load->library('form_validation');
+      $this->form_validation->set_rules($rules);
+      if ( $this->form_validation->run() == true ) {
+
+        $id = $this->article->save_article( $this->input->post() );
+
+        header( 'Location: /blog/view/'.$id );
+
+      } else
+      {
+        header( 'Location: /blog/' );
+      }
+    } else
+    {
+      header( 'Location: /blog/' );
+    }
   }
 
 }

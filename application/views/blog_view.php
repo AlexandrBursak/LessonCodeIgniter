@@ -8,6 +8,8 @@
 ?>
 
 <h1> <?php echo $data->article['title'] ?> </h1>
+<p> <a href="/blog/edit/<?php echo $data->article['id'] ?>"> + Edit </a> </p>
+
 <p><?php echo $data->article['date'] ?></p>
 <p><?php echo $data->article['author'] ?></p>
 <div>

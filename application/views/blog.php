@@ -9,6 +9,7 @@
 
 <h1> <?php echo $data->title ?> </h1>
 
+<p> <a href="/blog/add"> + Add </a> </p>
 <ul>
   <?php foreach ( $data->articles as $article ) : ?>
     <li><b><?php echo $article['date'] ?></b>: <a href="/blog/view/<?php echo $article['id'] ?>"><?php echo $article['title'] ?></a></li>
